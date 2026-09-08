@@ -1,0 +1,8 @@
+{
+  "url": "https://demo.pricewatch.invalid/product/alpha",
+  "rule": {
+    "type": "target_price",
+    "threshold": "150.00",
+    "currency": "BRL"
+  }
+}
