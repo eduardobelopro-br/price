@@ -1,0 +1,10 @@
+/* NEXO Design System — Design Tokens: Espacamento e raio */
+:root {
+  --nexo-radius-sm: 0.5rem;
+  --nexo-radius-md: 0.75rem;
+  --nexo-radius-lg: 1rem;
+  --nexo-radius-xl: 1.25rem;
+
+  --nexo-sidebar-width: 15rem;
+  --nexo-header-height: 4rem;
+}

@@ -27,7 +27,15 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "pricewatch.storage.migrations" = ["*.sql"]
-"pricewatch.api" = ["static/*.css", "static/*.js"]
+"pricewatch.api" = [
+  "static/*.css",
+  "static/*.js",
+  "static/design-system/*.css",
+  "static/design-system/tokens/*.css",
+  "static/design-system/themes/*.css",
+  "static/design-system/components/*.css",
+  "static/design-system/layouts/*.css",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

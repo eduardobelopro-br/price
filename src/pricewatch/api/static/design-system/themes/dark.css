@@ -1,0 +1,50 @@
+/**
+ * NEXO Design System — Tema Escuro
+ *
+ * Os valores em tokens/colors.css ja sao o tema escuro por padrao (:root),
+ * entao este arquivo apenas torna [data-theme="dark"] explicito — necessario
+ * para o caso de "system" cair de volta para escuro depois do usuario ter
+ * escolhido "claro" manualmente em outra sessao.
+ */
+[data-theme="dark"] {
+  --nexo-primary: #2563eb;
+  --nexo-primary-hover: #3b82f6;
+  --nexo-primary-soft: rgba(37, 99, 235, 0.1);
+  --nexo-primary-border: rgba(59, 130, 246, 0.3);
+
+  --nexo-secondary: #1e293b;
+  --nexo-secondary-hover: #334155;
+
+  --nexo-background: #020617;
+  --nexo-surface: #0f172a;
+  --nexo-surface-alt: #1e293b;
+  --nexo-surface-elevated: #0f172a;
+
+  --nexo-text-primary: #f1f5f9;
+  --nexo-text-secondary: #94a3b8;
+  --nexo-text-muted: #64748b;
+  --nexo-text-on-primary: #ffffff;
+
+  --nexo-border: #1e293b;
+  --nexo-border-soft: #334155;
+
+  --nexo-success: #4ade80;
+  --nexo-success-bg: rgba(34, 197, 94, 0.12);
+  --nexo-success-border: rgba(34, 197, 94, 0.25);
+
+  --nexo-warning: #fbbf24;
+  --nexo-warning-bg: rgba(245, 158, 11, 0.12);
+  --nexo-warning-border: rgba(245, 158, 11, 0.25);
+
+  --nexo-danger: #f87171;
+  --nexo-danger-bg: rgba(239, 68, 68, 0.12);
+  --nexo-danger-border: rgba(239, 68, 68, 0.25);
+
+  --nexo-info: #60a5fa;
+  --nexo-info-bg: rgba(59, 130, 246, 0.12);
+  --nexo-info-border: rgba(59, 130, 246, 0.25);
+
+  --nexo-neutral: #94a3b8;
+  --nexo-neutral-bg: rgba(148, 163, 184, 0.12);
+  --nexo-neutral-border: rgba(148, 163, 184, 0.2);
+}

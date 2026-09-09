@@ -1,17 +1,124 @@
-body { font-family: system-ui, sans-serif; margin: 2rem; color: #1a1a1a; }
-h1 { font-size: 1.4rem; }
-h2 { font-size: 1.1rem; margin-top: 2rem; }
-table { border-collapse: collapse; width: 100%; margin-top: 0.5rem; }
-th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; font-size: 0.9rem; }
-th { background: #f5f5f5; }
-.status-active { color: #147a2f; }
-.status-paused { color: #8a6d00; }
-.status-error, .status-unsupported { color: #b3261e; }
-.status-archived { color: #777; }
-button { cursor: pointer; }
-input, select { padding: 0.3rem; }
+/* Price — identidade visual da Suite NEXO.
+ * Tokens/temas/componentes vêm de ./design-system/ (cópia verbatim de
+ * NEXO/frontend/src/design-system/, conforme
+ * docs/NEXO_DESIGN_SYSTEM_IDENTIDADE_VISUAL_V1.md §14). Nunca usar cor fixa
+ * aqui — sempre var(--nexo-*).
+ */
+@import "design-system/index.css";
+
+* { box-sizing: border-box; }
+
+/* .nexo-alert sets display:flex at the same specificity as the UA [hidden]
+   rule; without this, an author class can win the tie and the element
+   stays visible even while hidden. */
+[hidden] { display: none !important; }
+
+body {
+  font-family: var(--nexo-font-sans);
+  margin: 0;
+  background: var(--nexo-background);
+  color: var(--nexo-text-primary);
+}
+
+main {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+h1 { font-size: var(--nexo-text-xl); font-weight: 700; margin: 0; }
+h2 { font-size: var(--nexo-text-lg); font-weight: 600; margin: 2rem 0 0.5rem; }
+h3 { font-size: var(--nexo-text-base); font-weight: 600; color: var(--nexo-text-secondary); margin: 1rem 0 0.5rem; }
+
+a { color: var(--nexo-primary); }
+a:hover { color: var(--nexo-primary-hover); }
+
+/* ---- Header (Design System §7/§9) ---- */
+
+.nexo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nexo-header-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.nexo-header-brand strong {
+  font-size: var(--nexo-text-lg);
+  letter-spacing: 0.02em;
+}
+
+.nexo-header-brand span {
+  color: var(--nexo-text-muted);
+  font-size: var(--nexo-text-sm);
+}
+
+/* ---- Theme selector (Design System §6): Claro / Escuro / Sistema ---- */
+
+.nexo-theme-switch {
+  display: inline-flex;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  background: var(--nexo-surface-alt);
+  border: 1px solid var(--nexo-border);
+  border-radius: var(--nexo-radius-md);
+}
+
+.nexo-theme-switch button {
+  border: none;
+  background: transparent;
+  padding: 0.375rem 0.625rem;
+  border-radius: calc(var(--nexo-radius-md) - 2px);
+  cursor: pointer;
+  font-size: var(--nexo-text-sm);
+  color: var(--nexo-text-secondary);
+}
+
+.nexo-theme-switch button.active {
+  background: var(--nexo-primary);
+  color: var(--nexo-text-on-primary);
+}
+
+/* ---- Page sections ---- */
+
+.nexo-section {
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.nexo-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.nexo-section-header h2 { margin: 0; }
+
+.nexo-form-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+}
+
+.nexo-form-row .nexo-field { flex: 1 1 16rem; }
+.nexo-form-row .nexo-field-narrow { flex: 0 1 10rem; }
+
 form.inline { display: inline; }
-#config { background: #f5f5f5; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; }
-#config input { width: 20rem; }
-.error { color: #b3261e; }
-.muted { color: #777; font-size: 0.85rem; }
+
+.nexo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.muted { color: var(--nexo-text-muted); font-size: var(--nexo-text-sm); }

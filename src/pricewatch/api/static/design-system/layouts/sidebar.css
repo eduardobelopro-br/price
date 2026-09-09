@@ -1,0 +1,32 @@
+/* NEXO Design System — Layout: Sidebar */
+
+.nexo-sidebar {
+  width: var(--nexo-sidebar-width);
+  background: color-mix(in srgb, var(--nexo-surface) 40%, transparent);
+  border-right: 1px solid var(--nexo-border);
+}
+
+.nexo-sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--nexo-radius-md);
+  font-size: var(--nexo-text-sm);
+  font-weight: 500;
+  color: var(--nexo-text-secondary);
+  border: 1px solid transparent;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  cursor: pointer;
+}
+
+.nexo-sidebar-item:hover {
+  color: var(--nexo-text-primary);
+  background: var(--nexo-surface-alt);
+}
+
+.nexo-sidebar-item.active {
+  color: var(--nexo-primary-hover);
+  background: var(--nexo-primary-soft);
+  border-color: var(--nexo-primary-border);
+}

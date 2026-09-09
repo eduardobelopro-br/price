@@ -1,0 +1,47 @@
+/* NEXO Design System — Componentes: Alertas
+ *
+ * Substitui os blocos repetidos de
+ *   bg-[var(--nexo-X-bg)] border border-[var(--nexo-X-border)] text-[var(--nexo-X)] ...
+ * espalhados pela aplicacao. Estados oficiais (Design System §8): SUCCESS,
+ * WARNING, DANGER, INFO. Modo claro/escuro automatico via tokens.
+ */
+
+.nexo-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  font-size: var(--nexo-text-sm);
+  border-radius: var(--nexo-radius-md);
+  border: 1px solid transparent;
+}
+
+.nexo-alert-center {
+  justify-content: center;
+  text-align: center;
+  padding: 0.5rem 1rem;
+}
+
+.nexo-alert-success {
+  color: var(--nexo-success);
+  background: var(--nexo-success-bg);
+  border-color: var(--nexo-success-border);
+}
+
+.nexo-alert-warning {
+  color: var(--nexo-warning);
+  background: var(--nexo-warning-bg);
+  border-color: var(--nexo-warning-border);
+}
+
+.nexo-alert-danger {
+  color: var(--nexo-danger);
+  background: var(--nexo-danger-bg);
+  border-color: var(--nexo-danger-border);
+}
+
+.nexo-alert-info {
+  color: var(--nexo-info);
+  background: var(--nexo-info-bg);
+  border-color: var(--nexo-info-border);
+}

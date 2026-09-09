@@ -1,0 +1,19 @@
+/* NEXO Design System — Componentes: Cards */
+
+.nexo-card {
+  background: color-mix(in srgb, var(--nexo-surface) 60%, transparent);
+  border: 1px solid var(--nexo-border);
+  border-radius: var(--nexo-radius-xl);
+}
+
+.nexo-card-solid {
+  background: var(--nexo-surface);
+  border: 1px solid var(--nexo-border);
+  border-radius: var(--nexo-radius-xl);
+}
+
+.nexo-card-inset {
+  background: color-mix(in srgb, var(--nexo-background) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--nexo-border) 40%, transparent);
+  border-radius: var(--nexo-radius-md);
+}

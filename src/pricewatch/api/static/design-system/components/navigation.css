@@ -1,0 +1,47 @@
+/* NEXO Design System — Componentes: Navegacao
+ *
+ * Design System §9. A navegacao principal (header + sidebar) vive em
+ * layouts/header.css e layouts/sidebar.css; aqui ficam os elementos de
+ * navegacao secundaria compartilhados entre modulos.
+ */
+
+/* Botao de acao no header (tema, logout, notificacoes) */
+.nexo-nav-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem;
+  border-radius: var(--nexo-radius-md);
+  color: var(--nexo-text-secondary);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.nexo-nav-action:hover {
+  color: var(--nexo-text-primary);
+  background: var(--nexo-surface-alt);
+}
+
+.nexo-nav-action-danger:hover {
+  color: var(--nexo-danger);
+  border-color: var(--nexo-danger-border);
+}
+
+/* Trilha de navegacao (breadcrumb) */
+.nexo-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--nexo-text-sm);
+  color: var(--nexo-text-secondary);
+}
+
+.nexo-breadcrumb a {
+  color: var(--nexo-text-secondary);
+  text-decoration: none;
+}
+
+.nexo-breadcrumb a:hover {
+  color: var(--nexo-text-primary);
+}

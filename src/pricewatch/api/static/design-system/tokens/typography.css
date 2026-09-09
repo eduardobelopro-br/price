@@ -1,0 +1,12 @@
+/* NEXO Design System — Design Tokens: Tipografia */
+:root {
+  --nexo-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --nexo-font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --nexo-text-xs: 0.75rem;
+  --nexo-text-sm: 0.875rem;
+  --nexo-text-base: 1rem;
+  --nexo-text-lg: 1.125rem;
+  --nexo-text-xl: 1.25rem;
+  --nexo-text-2xl: 1.5rem;
+}

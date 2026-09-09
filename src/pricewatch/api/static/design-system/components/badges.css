@@ -1,0 +1,46 @@
+/* NEXO Design System — Componentes: Badges */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: var(--nexo-text-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-style: solid;
+  font-family: var(--nexo-font-mono);
+}
+
+.badge-success {
+  color: var(--nexo-success);
+  background: var(--nexo-success-bg);
+  border-color: var(--nexo-success-border);
+}
+
+.badge-warning {
+  color: var(--nexo-warning);
+  background: var(--nexo-warning-bg);
+  border-color: var(--nexo-warning-border);
+}
+
+.badge-danger {
+  color: var(--nexo-danger);
+  background: var(--nexo-danger-bg);
+  border-color: var(--nexo-danger-border);
+}
+
+.badge-info {
+  color: var(--nexo-info);
+  background: var(--nexo-info-bg);
+  border-color: var(--nexo-info-border);
+}
+
+.badge-neutral {
+  color: var(--nexo-text-secondary);
+  background: var(--nexo-surface-alt);
+  border-color: var(--nexo-border);
+}

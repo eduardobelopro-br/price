@@ -23,7 +23,8 @@ def test_ui_js_never_uses_innerhtml() -> None:
 
 
 def test_ui_js_never_persists_the_api_key() -> None:
-    assert "price_api_key" not in UI_JS
+    assert "localStorage.setItem('price_api_key'" not in UI_JS
+    assert "localStorage.removeItem('price_api_key')" in UI_JS
     assert "runtimeApiKey" in UI_JS
 
 

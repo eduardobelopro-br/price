@@ -1,0 +1,57 @@
+/* NEXO Design System — Componentes: Botoes */
+
+.btn-primary {
+  background: var(--nexo-primary);
+  color: var(--nexo-text-on-primary);
+  border: 1px solid transparent;
+  border-radius: var(--nexo-radius-md);
+  transition: background-color 0.15s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--nexo-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--nexo-surface-alt);
+  color: var(--nexo-text-secondary);
+  border: 1px solid var(--nexo-border-soft);
+  border-radius: var(--nexo-radius-md);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--nexo-secondary-hover);
+  color: var(--nexo-text-primary);
+}
+
+.btn-danger {
+  background: var(--nexo-danger-bg);
+  color: var(--nexo-danger);
+  border: 1px solid var(--nexo-danger-border);
+  border-radius: var(--nexo-radius-md);
+  transition: background-color 0.15s ease;
+}
+.btn-danger:hover:not(:disabled) {
+  background: var(--nexo-danger);
+  color: var(--nexo-text-on-primary);
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--nexo-text-secondary);
+  border: 1px solid var(--nexo-border);
+  border-radius: var(--nexo-radius-md);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--nexo-surface-alt);
+  color: var(--nexo-text-primary);
+  border-color: var(--nexo-border-soft);
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled,
+.btn-danger:disabled,
+.btn-outline:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

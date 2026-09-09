@@ -1,0 +1,61 @@
+/* NEXO Design System — Componentes: Formularios
+ *
+ * Rotulo + campo padronizados (Design System §8 / §12 acessibilidade).
+ * Todos os modulos da Suite NEXO devem usar .nexo-label / .nexo-input /
+ * .nexo-select em vez de reescrever as classes utilitarias.
+ */
+
+.nexo-label {
+  display: block;
+  font-size: var(--nexo-text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--nexo-text-secondary);
+  margin-bottom: 0.375rem;
+}
+
+.nexo-input,
+.nexo-select,
+.nexo-textarea {
+  width: 100%;
+  background: var(--nexo-background);
+  border: 1px solid var(--nexo-border);
+  border-radius: var(--nexo-radius-lg);
+  padding: 0.5rem 0.75rem;
+  font-size: var(--nexo-text-sm);
+  color: var(--nexo-text-primary);
+  font-family: inherit;
+  transition: border-color 0.15s ease;
+}
+
+.nexo-textarea {
+  resize: vertical;
+  min-height: 5rem;
+}
+
+.nexo-input::placeholder,
+.nexo-textarea::placeholder {
+  color: var(--nexo-text-muted);
+}
+
+.nexo-input:focus,
+.nexo-select:focus,
+.nexo-textarea:focus {
+  outline: none;
+  border-color: var(--nexo-primary);
+}
+
+.nexo-input:disabled,
+.nexo-select:disabled,
+.nexo-textarea:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Variante monospace (identificadores canonicos: NEXO-PERSON-000001, UIDs) */
+.nexo-input-mono {
+  font-family: var(--nexo-font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

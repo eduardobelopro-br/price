@@ -1,0 +1,54 @@
+/* NEXO Design System — Componentes: Tabelas
+ *
+ * Base visual da tabela padrao NEXO (Design System §8). Filtros, busca,
+ * paginacao e ordenacao sao responsabilidade do componente React que
+ * consome a tabela; aqui fica so a identidade visual, com modo claro/escuro
+ * automatico via tokens.
+ *
+ * Uso: <div class="nexo-table-wrap"><table class="nexo-table">...</table></div>
+ */
+
+.nexo-table-wrap {
+  overflow-x: auto;
+}
+
+.nexo-table {
+  width: 100%;
+  text-align: left;
+  font-size: var(--nexo-text-xs);
+  border-collapse: collapse;
+}
+
+.nexo-table thead tr {
+  border-bottom: 1px solid var(--nexo-border);
+  color: var(--nexo-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.nexo-table th,
+.nexo-table td {
+  padding: 0.75rem 1rem;
+  vertical-align: top;
+}
+
+.nexo-table tbody tr {
+  border-top: 1px solid color-mix(in srgb, var(--nexo-border) 40%, transparent);
+  transition: background-color 0.12s ease;
+}
+
+.nexo-table tbody tr:hover {
+  background: color-mix(in srgb, var(--nexo-background) 40%, transparent);
+}
+
+.nexo-table td {
+  color: var(--nexo-text-secondary);
+}
+
+/* Cabecalho de coluna clicavel (ordenacao) */
+.nexo-table th[aria-sort],
+.nexo-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}

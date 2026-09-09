@@ -1,0 +1,25 @@
+/**
+ * NEXO Design System V1 — ponto de entrada unico.
+ *
+ * Estrutura conforme docs/NEXO_DESIGN_SYSTEM_IDENTIDADE_VISUAL_V1.md.
+ * Qualquer modulo futuro da Suite NEXO (RIF, SGD, SIFA, OWL, MPA, ECO)
+ * deve importar este arquivo em vez de recriar tokens/componentes proprios.
+ */
+@import "./tokens/colors.css";
+@import "./tokens/typography.css";
+@import "./tokens/spacing.css";
+@import "./tokens/shadows.css";
+
+@import "./themes/dark.css";
+@import "./themes/light.css";
+
+@import "./components/buttons.css";
+@import "./components/badges.css";
+@import "./components/cards.css";
+@import "./components/alerts.css";
+@import "./components/forms.css";
+@import "./components/tables.css";
+@import "./components/navigation.css";
+
+@import "./layouts/header.css";
+@import "./layouts/sidebar.css";

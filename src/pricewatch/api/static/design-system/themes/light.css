@@ -1,0 +1,95 @@
+/**
+ * NEXO Design System — Tema Claro
+ *
+ * Aplicado via [data-theme="light"] (selecao explicita do usuario) e, no modo
+ * "Sistema" (sem atributo data-theme), via prefers-color-scheme.
+ */
+[data-theme="light"] {
+  --nexo-primary: #2563eb;
+  --nexo-primary-hover: #1d4ed8;
+  --nexo-primary-soft: rgba(37, 99, 235, 0.08);
+  --nexo-primary-border: rgba(37, 99, 235, 0.25);
+
+  --nexo-secondary: #e2e8f0;
+  --nexo-secondary-hover: #cbd5e1;
+
+  --nexo-background: #f1f5f9;
+  --nexo-surface: #ffffff;
+  --nexo-surface-alt: #f8fafc;
+  --nexo-surface-elevated: #ffffff;
+
+  --nexo-text-primary: #0f172a;
+  --nexo-text-secondary: #475569;
+  --nexo-text-muted: #64748b;
+  --nexo-text-on-primary: #ffffff;
+
+  --nexo-border: #e2e8f0;
+  --nexo-border-soft: #cbd5e1;
+
+  --nexo-success: #16a34a;
+  --nexo-success-bg: rgba(22, 163, 74, 0.1);
+  --nexo-success-border: rgba(22, 163, 74, 0.2);
+
+  --nexo-warning: #d97706;
+  --nexo-warning-bg: rgba(217, 119, 6, 0.1);
+  --nexo-warning-border: rgba(217, 119, 6, 0.2);
+
+  --nexo-danger: #dc2626;
+  --nexo-danger-bg: rgba(220, 38, 38, 0.1);
+  --nexo-danger-border: rgba(220, 38, 38, 0.2);
+
+  --nexo-info: #2563eb;
+  --nexo-info-bg: rgba(37, 99, 235, 0.1);
+  --nexo-info-border: rgba(37, 99, 235, 0.2);
+
+  --nexo-neutral: #64748b;
+  --nexo-neutral-bg: rgba(100, 116, 139, 0.1);
+  --nexo-neutral-border: rgba(100, 116, 139, 0.2);
+}
+
+/* Modo "Sistema": nenhum data-theme definido no <html>, entao seguimos a
+   preferencia do sistema operacional. */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --nexo-primary: #2563eb;
+    --nexo-primary-hover: #1d4ed8;
+    --nexo-primary-soft: rgba(37, 99, 235, 0.08);
+    --nexo-primary-border: rgba(37, 99, 235, 0.25);
+
+    --nexo-secondary: #e2e8f0;
+    --nexo-secondary-hover: #cbd5e1;
+
+    --nexo-background: #f1f5f9;
+    --nexo-surface: #ffffff;
+    --nexo-surface-alt: #f8fafc;
+    --nexo-surface-elevated: #ffffff;
+
+    --nexo-text-primary: #0f172a;
+    --nexo-text-secondary: #475569;
+    --nexo-text-muted: #64748b;
+    --nexo-text-on-primary: #ffffff;
+
+    --nexo-border: #e2e8f0;
+    --nexo-border-soft: #cbd5e1;
+
+    --nexo-success: #16a34a;
+    --nexo-success-bg: rgba(22, 163, 74, 0.1);
+    --nexo-success-border: rgba(22, 163, 74, 0.2);
+
+    --nexo-warning: #d97706;
+    --nexo-warning-bg: rgba(217, 119, 6, 0.1);
+    --nexo-warning-border: rgba(217, 119, 6, 0.2);
+
+    --nexo-danger: #dc2626;
+    --nexo-danger-bg: rgba(220, 38, 38, 0.1);
+    --nexo-danger-border: rgba(220, 38, 38, 0.2);
+
+    --nexo-info: #2563eb;
+    --nexo-info-bg: rgba(37, 99, 235, 0.1);
+    --nexo-info-border: rgba(37, 99, 235, 0.2);
+
+    --nexo-neutral: #64748b;
+    --nexo-neutral-bg: rgba(100, 116, 139, 0.1);
+    --nexo-neutral-border: rgba(100, 116, 139, 0.2);
+  }
+}

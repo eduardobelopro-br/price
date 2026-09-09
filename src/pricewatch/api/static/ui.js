@@ -6,6 +6,36 @@
 let runtimeApiKey = '';
 let openDetailProductId = null;
 
+// ---- Tema (NEXO Design System §6): claro / escuro / sistema ----
+
+const THEME_STORAGE_KEY = 'nexo-theme';
+
+function applyTheme(choice) {
+  if (choice === 'light' || choice === 'dark') {
+    document.documentElement.setAttribute('data-theme', choice);
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  for (const btn of document.querySelectorAll('#themeSwitch button')) {
+    btn.classList.toggle('active', btn.dataset.themeChoice === choice);
+  }
+}
+
+function setTheme(choice) {
+  localStorage.setItem(THEME_STORAGE_KEY, choice);
+  applyTheme(choice);
+}
+
+function initTheme() {
+  const stored = localStorage.getItem(THEME_STORAGE_KEY) || 'system';
+  applyTheme(stored);
+  for (const btn of document.querySelectorAll('#themeSwitch button')) {
+    btn.addEventListener('click', () => setTheme(btn.dataset.themeChoice));
+  }
+}
+
+// ---- API ----
+
 function apiBaseInput() {
   return document.getElementById('apiBase');
 }
@@ -26,6 +56,9 @@ function saveConfig() {
 
 function loadConfig() {
   apiBaseInput().value = localStorage.getItem('price_api_base') || window.location.origin;
+  // Cleanup for browsers that still have the key from before it stopped
+  // being persisted (Fase 6.1) — never leave it sitting in storage.
+  localStorage.removeItem('price_api_key');
 }
 
 async function api(path, options) {
@@ -76,9 +109,28 @@ function td(value) {
   return cell;
 }
 
-function button(label, onClick) {
+// NEXO Design System §8: estados oficiais de badge são success/warning/danger/
+// info/neutral — nunca uma cor de status inventada.
+const STATUS_BADGE = {
+  active: ['badge-success', 'ativo'],
+  paused: ['badge-warning', 'pausado'],
+  error: ['badge-danger', 'erro'],
+  unsupported: ['badge-danger', 'não suportado'],
+  archived: ['badge-neutral', 'arquivado'],
+};
+
+function statusBadge(status) {
+  const [badgeClass, label] = STATUS_BADGE[status] || ['badge-neutral', status];
+  const span = document.createElement('span');
+  span.className = `badge ${badgeClass}`;
+  span.textContent = label;
+  return span;
+}
+
+function button(label, onClick, variant) {
   const btn = document.createElement('button');
   btn.type = 'button';
+  btn.className = variant || 'btn-outline';
   btn.textContent = label;
   btn.addEventListener('click', onClick);
   return btn;
@@ -99,6 +151,7 @@ function linkTo(rawUrl, text) {
 
 function buildTable(headers, rows, emptyMessage) {
   const table = document.createElement('table');
+  table.className = 'nexo-table';
   const thead = document.createElement('thead');
   const headRow = document.createElement('tr');
   for (const header of headers) {
@@ -126,7 +179,16 @@ function buildTable(headers, rows, emptyMessage) {
     }
   }
   table.appendChild(tbody);
-  return table;
+
+  const wrap = document.createElement('div');
+  wrap.className = 'nexo-table-wrap';
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function showError(box, message) {
+  box.textContent = message;
+  box.hidden = !message;
 }
 
 async function createProduct(event) {
@@ -134,7 +196,7 @@ async function createProduct(event) {
   const url = document.getElementById('newUrl').value;
   const interval = document.getElementById('newInterval').value;
   const errorBox = document.getElementById('createError');
-  errorBox.textContent = '';
+  showError(errorBox, '');
   try {
     const payload = { url: url };
     if (interval) payload.check_interval_seconds = parseInt(interval, 10);
@@ -143,7 +205,7 @@ async function createProduct(event) {
     document.getElementById('newInterval').value = '';
     await loadProducts();
   } catch (err) {
-    errorBox.textContent = err.message;
+    showError(errorBox, err.message);
   }
 }
 
@@ -159,8 +221,8 @@ async function loadProducts() {
     urlCell.appendChild(linkTo(p.url, p.title || p.url));
     tr.appendChild(urlCell);
 
-    const statusCell = td(p.status);
-    statusCell.className = `status-${p.status}`;
+    const statusCell = document.createElement('td');
+    statusCell.appendChild(statusBadge(p.status));
     tr.appendChild(statusCell);
 
     const price = p.last_price_amount ? `${p.last_price_amount} ${p.last_price_currency}` : null;
@@ -169,12 +231,17 @@ async function loadProducts() {
     tr.appendChild(td(p.consecutive_failures));
 
     const actions = document.createElement('td');
-    actions.appendChild(button('Detalhes', () => showDetail(p.id)));
-    actions.appendChild(button('Verificar agora', () => checkNow(p.id)));
+    actions.className = 'nexo-actions';
+    actions.appendChild(button('Detalhes', () => showDetail(p.id), 'btn-outline'));
+    actions.appendChild(button('Verificar agora', () => checkNow(p.id), 'btn-secondary'));
     actions.appendChild(
-      button(p.status === 'paused' ? 'Retomar' : 'Pausar', () => toggleStatus(p.id, p.status))
+      button(
+        p.status === 'paused' ? 'Retomar' : 'Pausar',
+        () => toggleStatus(p.id, p.status),
+        'btn-secondary'
+      )
     );
-    actions.appendChild(button('Arquivar', () => archiveProduct(p.id)));
+    actions.appendChild(button('Arquivar', () => archiveProduct(p.id), 'btn-danger'));
     tr.appendChild(actions);
 
     tbody.appendChild(tr);
@@ -222,10 +289,11 @@ async function showDetail(id) {
   const detail = document.getElementById('detail');
   detail.replaceChildren();
 
-  detail.appendChild(el('h2', {}, [`Detalhes: ${product.title || product.url}`]));
-  detail.appendChild(el('p', { class: 'muted' }, [product.url]));
+  const section = el('section', { class: 'nexo-card-solid nexo-section' }, []);
+  section.appendChild(el('h2', {}, [`Detalhes: ${product.title || product.url}`]));
+  section.appendChild(el('p', { class: 'muted' }, [product.url]));
 
-  detail.appendChild(el('h3', {}, ['Erros recentes']));
+  section.appendChild(el('h3', {}, ['Erros recentes']));
   const errorsList = document.createElement('ul');
   if (product.recent_errors.length) {
     for (const e of product.recent_errors) {
@@ -236,10 +304,10 @@ async function showDetail(id) {
   } else {
     errorsList.appendChild(el('li', { class: 'muted' }, ['nenhum erro recente']));
   }
-  detail.appendChild(errorsList);
+  section.appendChild(errorsList);
 
-  detail.appendChild(el('h3', {}, ['Histórico (últimas 20 observações)']));
-  detail.appendChild(
+  section.appendChild(el('h3', {}, ['Histórico (últimas 20 observações)']));
+  section.appendChild(
     buildTable(
       ['Quando', 'Preço', 'Fonte', 'Disponibilidade'],
       history.map((h) => [
@@ -252,25 +320,28 @@ async function showDetail(id) {
     )
   );
 
-  detail.appendChild(el('h3', {}, ['Regras']));
-  detail.appendChild(
+  section.appendChild(el('h3', {}, ['Regras']));
+  section.appendChild(
     buildTable(
       ['Tipo', 'Limite', 'Ativa', ''],
       rules.map((r) => [
         r.kind,
         r.threshold == null ? '-' : r.threshold,
         String(r.active),
-        button('Remover', () => deleteRule(r.id, id)),
+        button('Remover', () => deleteRule(r.id, id), 'btn-danger'),
       ]),
       'sem regras'
     )
   );
 
-  const form = el('form', { class: 'inline' }, []);
+  const form = el('form', { class: 'inline nexo-form-row' }, []);
   form.addEventListener('submit', (event) => createRule(event, id));
 
+  const kindField = el('div', { class: 'nexo-field-narrow' }, []);
+  kindField.appendChild(el('label', { class: 'nexo-label', for: 'ruleKind' }, ['Tipo']));
   const kindSelect = document.createElement('select');
   kindSelect.id = 'ruleKind';
+  kindSelect.className = 'nexo-select';
   const options = [
     ['target_price', 'Preço-alvo'],
     ['absolute_drop', 'Queda absoluta'],
@@ -280,22 +351,28 @@ async function showDetail(id) {
   for (const [value, label] of options) {
     kindSelect.appendChild(el('option', { value }, [label]));
   }
-  form.appendChild(kindSelect);
+  kindField.appendChild(kindSelect);
+  form.appendChild(kindField);
 
+  const thresholdField = el('div', { class: 'nexo-field-narrow' }, []);
+  thresholdField.appendChild(el('label', { class: 'nexo-label', for: 'ruleThreshold' }, ['Limite']));
   const thresholdInput = document.createElement('input');
   thresholdInput.id = 'ruleThreshold';
+  thresholdInput.className = 'nexo-input';
   thresholdInput.type = 'number';
   thresholdInput.step = '0.01';
-  thresholdInput.placeholder = 'limite';
   thresholdInput.required = true;
-  form.appendChild(thresholdInput);
+  thresholdField.appendChild(thresholdInput);
+  form.appendChild(thresholdField);
 
   const submitButton = document.createElement('button');
   submitButton.type = 'submit';
+  submitButton.className = 'btn-primary';
   submitButton.textContent = 'Adicionar regra';
   form.appendChild(submitButton);
 
-  detail.appendChild(form);
+  section.appendChild(form);
+  detail.appendChild(section);
 }
 
 async function createRule(event, productId) {
@@ -355,5 +432,6 @@ document.getElementById('newProductForm').addEventListener('submit', createProdu
 document.getElementById('reloadProducts').addEventListener('click', loadProducts);
 document.getElementById('reloadAlerts').addEventListener('click', loadAlerts);
 
+initTheme();
 loadConfig();
 loadProducts().catch((err) => console.error(err));
