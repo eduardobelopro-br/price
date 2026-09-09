@@ -67,6 +67,12 @@ price/
 
 ## Início rápido do código-base
 
+Duplo clique em `start.bat` na raiz do repositório: cria o `.venv` e o `.env` se ainda não
+existirem, instala as dependências, inicia o worker numa janela separada e a API em
+`http://127.0.0.1:8000` (abre o navegador automaticamente).
+
+Ou manualmente:
+
 ```powershell
 cd F:\Github\price
 py -3.11 -m venv .venv
