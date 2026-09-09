@@ -8,6 +8,4 @@ def comparable(left: OfferSnapshot, right: OfferSnapshot) -> bool:
         return False
     if left.price_scope != right.price_scope:
         return False
-    if left.variant_key != right.variant_key:
-        return False
-    return True
+    return left.variant_key == right.variant_key

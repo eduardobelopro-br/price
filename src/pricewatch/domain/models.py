@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -33,7 +33,7 @@ class OfferSnapshot:
     seller: str | None = None
     availability: str | None = None
     confidence: Literal["low", "medium", "high"] = "high"
-    observed_at: datetime = datetime.now(timezone.utc)
+    observed_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass(frozen=True, slots=True)
@@ -51,3 +51,75 @@ class CollectError:
 
 
 CollectResult = OfferSnapshot | CollectError
+
+
+ProductStatus = Literal["active", "paused", "unsupported", "error", "archived"]
+
+
+@dataclass(slots=True)
+class Product:
+    url: str
+    check_interval_seconds: int
+    next_check_at: datetime
+    created_at: datetime
+    updated_at: datetime
+    id: int | None = None
+    variant_key: str | None = None
+    title: str | None = None
+    status: ProductStatus = "active"
+    consecutive_failures: int = 0
+
+
+RuleKind = Literal["target_price", "absolute_drop", "percentage_drop", "new_low"]
+
+
+@dataclass(slots=True)
+class Rule:
+    product_id: int
+    kind: RuleKind
+    threshold: Decimal
+    created_at: datetime
+    id: int | None = None
+    active: bool = True
+
+
+CollectionAttemptStatus = Literal["success", "error"]
+
+
+@dataclass(slots=True)
+class CollectionAttempt:
+    product_id: int
+    collector: str
+    status: CollectionAttemptStatus
+    observed_at: datetime
+    id: int | None = None
+    error_code: str | None = None
+    error_message: str | None = None
+
+
+@dataclass(slots=True)
+class AlertEvent:
+    product_id: int
+    rule_id: int
+    idempotency_key: str
+    reference_price: Decimal
+    current_price: Decimal
+    currency: str
+    created_at: datetime
+    id: int | None = None
+
+
+OutboxStatus = Literal["pending", "sent", "failed"]
+
+
+@dataclass(slots=True)
+class OutboxItem:
+    alert_event_id: int
+    channel: str
+    next_attempt_at: datetime
+    created_at: datetime
+    id: int | None = None
+    status: OutboxStatus = "pending"
+    attempts: int = 0
+    sent_at: datetime | None = None
+    last_error: str | None = None

@@ -1,7 +1,13 @@
 from decimal import Decimal
 from urllib.parse import urlsplit
 
-from pricewatch.domain.models import CollectError, CollectRequest, CollectResult, Money, OfferSnapshot
+from pricewatch.domain.models import (
+    CollectError,
+    CollectRequest,
+    CollectResult,
+    Money,
+    OfferSnapshot,
+)
 
 
 class DemoCollector:
@@ -22,7 +28,7 @@ class DemoCollector:
 
         slug = urlsplit(request.url).path.strip("/") or "product"
         cents = 10000 + (sum(slug.encode("utf-8")) % 10000)
-        amount = Decimal(cents) / Decimal("100")
+        amount = Decimal(cents) / Decimal(100)
 
         return OfferSnapshot(
             price=Money(amount=amount, currency="BRL"),

@@ -7,3 +7,11 @@ services:
       - .env
     volumes:
       - ./data:/app/data
+
+  worker:
+    build: .
+    command: ["python", "-m", "pricewatch.worker.main"]
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data

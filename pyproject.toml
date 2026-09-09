@@ -10,14 +10,14 @@ requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1",
   "uvicorn[standard]>=0.30,<1",
-  "pydantic>=2.8,<3"
+  "pydantic>=2.8,<3",
+  "httpx>=0.27,<1"
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest>=8,<9",
   "pytest-asyncio>=0.24,<1",
-  "httpx>=0.27,<1",
   "ruff>=0.6,<1",
   "mypy>=1.11,<2"
 ]
@@ -25,12 +25,20 @@ dev = [
 [tool.setuptools.packages.find]
 where = ["src"]
 
+[tool.setuptools.package-data]
+"pricewatch.storage.migrations" = ["*.sql"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's Depends()-as-default-argument is the framework's own dependency
+# injection idiom, not the mutable-default-argument bug B008 guards against.
+"src/pricewatch/api/**" = ["B008"]
 
 [tool.mypy]
 python_version = "3.11"

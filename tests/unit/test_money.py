@@ -12,4 +12,4 @@ def test_money_normalizes_currency() -> None:
 
 def test_money_rejects_negative() -> None:
     with pytest.raises(ValueError):
-        Money(Decimal("-1"), "BRL")
+        Money(Decimal(-1), "BRL")
