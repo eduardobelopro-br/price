@@ -140,3 +140,29 @@ def test_ui_page_is_served(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
     assert "text/html" in response.headers["content-type"]
+
+
+def test_ui_page_has_no_inline_scripts_or_remote_data(client: TestClient) -> None:
+    response = client.get("/")
+    assert "<script>" not in response.text
+    assert '<script src="/static/ui.js">' in response.text
+    assert "innerHTML" not in response.text
+    assert "localStorage" not in response.text
+
+
+def test_static_assets_are_served(client: TestClient) -> None:
+    js_response = client.get("/static/ui.js")
+    assert js_response.status_code == 200
+    assert "innerHTML" not in js_response.text
+
+    css_response = client.get("/static/ui.css")
+    assert css_response.status_code == 200
+
+
+def test_content_security_policy_header_is_present_on_every_response(client: TestClient) -> None:
+    for path in ("/", "/health", "/static/ui.js"):
+        response = client.get(path)
+        csp = response.headers.get("content-security-policy", "")
+        assert "default-src 'self'" in csp
+        assert "script-src 'self'" in csp
+        assert "object-src 'none'" in csp

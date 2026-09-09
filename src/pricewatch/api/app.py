@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse
+from starlette.staticfiles import StaticFiles
 
 from pricewatch.api.errors import register_exception_handlers
 from pricewatch.api.routers import alerts, products, rules
@@ -18,6 +20,14 @@ from pricewatch.net.http_client import SecureHttpClient
 from pricewatch.services.monitor import MonitorService
 from pricewatch.settings import Settings
 from pricewatch.storage.sqlite import SqliteStorage
+
+STATIC_DIR = Path(__file__).parent / "static"
+
+CONTENT_SECURITY_POLICY = (
+    "default-src 'self'; script-src 'self'; style-src 'self'; "
+    "img-src 'self' data:; connect-src 'self'; object-src 'none'; "
+    "base-uri 'none'; frame-ancestors 'none'"
+)
 
 
 @asynccontextmanager
@@ -50,6 +60,17 @@ register_exception_handlers(app)
 app.include_router(products.router, prefix="/api/v1")
 app.include_router(rules.router, prefix="/api/v1")
 app.include_router(alerts.router, prefix="/api/v1")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.middleware("http")
+async def add_security_headers(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    response = await call_next(request)
+    response.headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    return response
 
 
 @app.get("/health")
