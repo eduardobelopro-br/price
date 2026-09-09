@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-from datetime import datetime
 from decimal import Decimal
 
-from pricewatch.domain.models import AlertEvent, OfferSnapshot, Product, Rule
+from pricewatch.domain.models import AlertCandidate, OfferSnapshot, Product, Rule, StoredSnapshot
 from pricewatch.services.comparison import comparable
 from pricewatch.storage.base import Storage
 
 
 class RulesEngine:
-    """Compares the latest observation against a valid reference and creates
-    idempotent alert events. A rule only fires on a meaningful change (a
-    fresh price, or a fresh false->true transition for target_price), so it
-    never spams the same condition while the price stays put.
+    """Compares the latest observation against a valid reference and
+    returns the rules that fired as AlertCandidate values. Pure with
+    respect to storage: it only reads. Persisting a candidate (and
+    guaranteeing it is not a duplicate) is the caller's responsibility,
+    via Storage.create_alert_with_outbox.
     """
 
     def __init__(self, storage: Storage) -> None:
         self._storage = storage
 
-    def evaluate_product(self, product: Product, now: datetime) -> list[AlertEvent]:
+    def evaluate_product(self, product: Product) -> list[AlertCandidate]:
         assert product.id is not None
         current = self._storage.last_snapshot(product.id)
         if current is None:
@@ -26,76 +26,70 @@ class RulesEngine:
 
         history = sorted(
             (
-                snapshot
-                for snapshot in self._storage.list_snapshots(product.id)
-                if snapshot.observed_at < current.observed_at and comparable(current, snapshot)
+                stored
+                for stored in self._storage.list_snapshots(product.id)
+                if stored.offer.observed_at < current.offer.observed_at
+                and comparable(current.offer, stored.offer)
             ),
-            key=lambda snapshot: snapshot.observed_at,
+            key=lambda stored: stored.offer.observed_at,
         )
         previous = history[-1] if history else None
 
-        events: list[AlertEvent] = []
+        candidates: list[AlertCandidate] = []
         for rule in self._storage.list_rules(product.id):
-            if not rule.active or not self._fires(rule, current, previous, history):
+            if not rule.active or not self._fires(rule, current.offer, previous, history):
                 continue
 
             assert rule.id is not None
-            event = self._storage.create_alert_event(
-                AlertEvent(
+            candidates.append(
+                AlertCandidate(
                     product_id=product.id,
                     rule_id=rule.id,
-                    idempotency_key=self._idempotency_key(product.id, rule, current),
-                    reference_price=(previous or current).price.amount,
-                    current_price=current.price.amount,
-                    currency=current.price.currency,
-                    created_at=now,
+                    snapshot_id=current.id,
+                    reference_price=(previous.offer if previous else current.offer).price.amount,
+                    current_price=current.offer.price.amount,
+                    currency=current.offer.price.currency,
                 )
             )
-            if event is not None:
-                events.append(event)
 
-        return events
+        return candidates
 
     def _fires(
         self,
         rule: Rule,
         current: OfferSnapshot,
-        previous: OfferSnapshot | None,
-        history: list[OfferSnapshot],
+        previous: StoredSnapshot | None,
+        history: list[StoredSnapshot],
     ) -> bool:
         if rule.kind == "target_price":
             # Only observations made after the rule existed count as "already
             # triggered" — otherwise a rule created while the price already
             # sat below the target would never fire its first alert.
             reference = next(
-                (s for s in reversed(history) if s.observed_at >= rule.created_at), None
+                (s for s in reversed(history) if s.offer.observed_at >= rule.created_at), None
             )
             currently = current.price.amount <= rule.threshold
-            previously = reference is not None and reference.price.amount <= rule.threshold
+            previously = reference is not None and reference.offer.price.amount <= rule.threshold
             return currently and not previously
 
         if previous is None:
             return False
 
         if rule.kind == "absolute_drop":
-            drop = previous.price.amount - current.price.amount
+            drop = previous.offer.price.amount - current.price.amount
             return drop >= rule.threshold
 
         if rule.kind == "percentage_drop":
-            if previous.price.amount == 0:
+            if previous.offer.price.amount == 0:
                 return False
-            drop = previous.price.amount - current.price.amount
-            percentage = (drop / previous.price.amount) * Decimal(100)
+            drop = previous.offer.price.amount - current.price.amount
+            percentage = (drop / previous.offer.price.amount) * Decimal(100)
             return percentage >= rule.threshold
 
         if rule.kind == "new_low":
             if not history:
                 return False
-            lowest = min(snapshot.price.amount for snapshot in history)
+            lowest = min(stored.offer.price.amount for stored in history)
             return current.price.amount < lowest
 
         return False
-
-    @staticmethod
-    def _idempotency_key(product_id: int, rule: Rule, current: OfferSnapshot) -> str:
-        return f"{product_id}:{rule.id}:{rule.kind}:{current.price.amount}:{current.price.currency}"

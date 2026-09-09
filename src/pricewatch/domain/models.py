@@ -53,6 +53,18 @@ class CollectError:
 CollectResult = OfferSnapshot | CollectError
 
 
+@dataclass(frozen=True, slots=True)
+class StoredSnapshot:
+    """An OfferSnapshot as persisted, carrying the row identity needed to
+    build idempotency keys that survive a price repeating later without
+    blocking a genuinely new alert.
+    """
+
+    id: int
+    product_id: int
+    offer: OfferSnapshot
+
+
 ProductStatus = Literal["active", "paused", "unsupported", "error", "archived"]
 
 
@@ -107,6 +119,22 @@ class AlertEvent:
     currency: str
     created_at: datetime
     id: int | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class AlertCandidate:
+    """A rule that fired for the current snapshot, not yet persisted. Kept
+    separate from AlertEvent so RulesEngine can stay a pure function of the
+    stored data — it never writes, so it is trivial to test and can never
+    itself create a duplicate.
+    """
+
+    product_id: int
+    rule_id: int
+    snapshot_id: int
+    reference_price: Decimal
+    current_price: Decimal
+    currency: str
 
 
 OutboxStatus = Literal["pending", "sent", "failed"]

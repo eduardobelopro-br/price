@@ -7,11 +7,11 @@ from datetime import timedelta
 from pricewatch.clock import Clock
 from pricewatch.collectors.registry import CollectorRegistry
 from pricewatch.domain.models import (
+    AlertEvent,
     CollectError,
     CollectionAttempt,
     CollectRequest,
     OfferSnapshot,
-    OutboxItem,
     Product,
 )
 from pricewatch.services.rules import RulesEngine
@@ -83,15 +83,21 @@ class MonitorService:
         product.updated_at = now
         updated = self._storage.update_product(product)
 
-        for event in self._rules_engine.evaluate_product(updated, now):
-            assert event.id is not None
-            self._storage.enqueue_outbox(
-                OutboxItem(
-                    alert_event_id=event.id,
-                    channel=NOTIFICATION_CHANNEL_TELEGRAM,
-                    next_attempt_at=now,
-                    created_at=now,
-                )
+        for candidate in self._rules_engine.evaluate_product(updated):
+            event = AlertEvent(
+                product_id=candidate.product_id,
+                rule_id=candidate.rule_id,
+                idempotency_key=f"{candidate.product_id}:{candidate.rule_id}:{candidate.snapshot_id}",
+                reference_price=candidate.reference_price,
+                current_price=candidate.current_price,
+                currency=candidate.currency,
+                created_at=now,
+            )
+            self._storage.create_alert_with_outbox(
+                event,
+                channel=NOTIFICATION_CHANNEL_TELEGRAM,
+                next_attempt_at=now,
+                created_at=now,
             )
 
         return updated

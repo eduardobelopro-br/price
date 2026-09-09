@@ -40,9 +40,9 @@ def _to_out(storage: SqliteStorage, product: Product) -> ProductOut:
         consecutive_failures=product.consecutive_failures,
         created_at=product.created_at,
         updated_at=product.updated_at,
-        last_price_amount=last.price.amount if last else None,
-        last_price_currency=last.price.currency if last else None,
-        last_checked_at=last.observed_at if last else None,
+        last_price_amount=last.offer.price.amount if last else None,
+        last_price_currency=last.offer.price.currency if last else None,
+        last_checked_at=last.offer.observed_at if last else None,
     )
 
 
@@ -172,20 +172,22 @@ async def get_history(
     storage: SqliteStorage = Depends(get_storage),
 ) -> list[SnapshotOut]:
     _get_or_404(storage, product_id)
-    snapshots = sorted(storage.list_snapshots(product_id), key=lambda s: s.observed_at, reverse=True)
+    stored_snapshots = sorted(
+        storage.list_snapshots(product_id), key=lambda s: s.offer.observed_at, reverse=True
+    )
     return [
         SnapshotOut(
-            price_amount=snapshot.price.amount,
-            price_currency=snapshot.price.currency,
-            source=snapshot.source,
-            source_kind=snapshot.source_kind,
-            price_scope=snapshot.price_scope,
-            title=snapshot.title,
-            variant_key=snapshot.variant_key,
-            seller=snapshot.seller,
-            availability=snapshot.availability,
-            confidence=snapshot.confidence,
-            observed_at=snapshot.observed_at,
+            price_amount=stored.offer.price.amount,
+            price_currency=stored.offer.price.currency,
+            source=stored.offer.source,
+            source_kind=stored.offer.source_kind,
+            price_scope=stored.offer.price_scope,
+            title=stored.offer.title,
+            variant_key=stored.offer.variant_key,
+            seller=stored.offer.seller,
+            availability=stored.offer.availability,
+            confidence=stored.offer.confidence,
+            observed_at=stored.offer.observed_at,
         )
-        for snapshot in snapshots[:limit]
+        for stored in stored_snapshots[:limit]
     ]

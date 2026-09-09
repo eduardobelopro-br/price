@@ -10,6 +10,7 @@ from pricewatch.domain.models import (
     OutboxItem,
     Product,
     Rule,
+    StoredSnapshot,
 )
 
 
@@ -26,11 +27,11 @@ class Storage(Protocol):
 
     def due_products(self, now: datetime) -> list[Product]: ...
 
-    def add_snapshot(self, product_id: int, snapshot: OfferSnapshot) -> OfferSnapshot: ...
+    def add_snapshot(self, product_id: int, snapshot: OfferSnapshot) -> StoredSnapshot: ...
 
-    def last_snapshot(self, product_id: int) -> OfferSnapshot | None: ...
+    def last_snapshot(self, product_id: int) -> StoredSnapshot | None: ...
 
-    def list_snapshots(self, product_id: int) -> list[OfferSnapshot]: ...
+    def list_snapshots(self, product_id: int) -> list[StoredSnapshot]: ...
 
     def add_collection_attempt(self, attempt: CollectionAttempt) -> CollectionAttempt: ...
 
@@ -44,6 +45,21 @@ class Storage(Protocol):
 
     def create_alert_event(self, event: AlertEvent) -> AlertEvent | None:
         """Persist an alert event. Returns None when idempotency_key already exists."""
+        ...
+
+    def create_alert_with_outbox(
+        self,
+        event: AlertEvent,
+        *,
+        channel: str,
+        next_attempt_at: datetime,
+        created_at: datetime,
+    ) -> AlertEvent | None:
+        """Persists the alert event and enqueues its outbox entry in a single
+        transaction, so a crash (or a duplicate idempotency_key) can never
+        leave one without the other. Returns None when idempotency_key
+        already exists — no outbox row is created in that case either.
+        """
         ...
 
     def get_alert_event(self, event_id: int) -> AlertEvent | None: ...

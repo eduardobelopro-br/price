@@ -14,6 +14,7 @@ from pricewatch.domain.models import (
     OutboxItem,
     Product,
     Rule,
+    StoredSnapshot,
 )
 from pricewatch.storage.migrator import apply_migrations
 
@@ -145,8 +146,8 @@ class SqliteStorage:
 
     # -- snapshots ----------------------------------------------------
 
-    def add_snapshot(self, product_id: int, snapshot: OfferSnapshot) -> OfferSnapshot:
-        self._connection.execute(
+    def add_snapshot(self, product_id: int, snapshot: OfferSnapshot) -> StoredSnapshot:
+        cursor = self._connection.execute(
             """
             INSERT INTO snapshots (
                 product_id, amount, currency, source, source_kind, price_scope,
@@ -169,35 +170,40 @@ class SqliteStorage:
             ),
         )
         self._connection.commit()
-        return snapshot
+        assert cursor.lastrowid is not None
+        return StoredSnapshot(id=cursor.lastrowid, product_id=product_id, offer=snapshot)
 
-    def last_snapshot(self, product_id: int) -> OfferSnapshot | None:
+    def last_snapshot(self, product_id: int) -> StoredSnapshot | None:
         row = self._connection.execute(
             "SELECT * FROM snapshots WHERE product_id = ? ORDER BY observed_at DESC, id DESC LIMIT 1",
             (product_id,),
         ).fetchone()
-        return self._row_to_snapshot(row) if row else None
+        return self._row_to_stored_snapshot(row) if row else None
 
-    def list_snapshots(self, product_id: int) -> list[OfferSnapshot]:
+    def list_snapshots(self, product_id: int) -> list[StoredSnapshot]:
         rows = self._connection.execute(
             "SELECT * FROM snapshots WHERE product_id = ? ORDER BY observed_at",
             (product_id,),
         ).fetchall()
-        return [self._row_to_snapshot(row) for row in rows]
+        return [self._row_to_stored_snapshot(row) for row in rows]
 
     @staticmethod
-    def _row_to_snapshot(row: sqlite3.Row) -> OfferSnapshot:
-        return OfferSnapshot(
-            price=Money(Decimal(row["amount"]), row["currency"]),
-            source=row["source"],
-            source_kind=row["source_kind"],
-            price_scope=row["price_scope"],
-            title=row["title"],
-            variant_key=row["variant_key"],
-            seller=row["seller"],
-            availability=row["availability"],
-            confidence=row["confidence"],
-            observed_at=_parse_dt(row["observed_at"]),
+    def _row_to_stored_snapshot(row: sqlite3.Row) -> StoredSnapshot:
+        return StoredSnapshot(
+            id=row["id"],
+            product_id=row["product_id"],
+            offer=OfferSnapshot(
+                price=Money(Decimal(row["amount"]), row["currency"]),
+                source=row["source"],
+                source_kind=row["source_kind"],
+                price_scope=row["price_scope"],
+                title=row["title"],
+                variant_key=row["variant_key"],
+                seller=row["seller"],
+                availability=row["availability"],
+                confidence=row["confidence"],
+                observed_at=_parse_dt(row["observed_at"]),
+            ),
         )
 
     # -- collection attempts ------------------------------------------
@@ -326,6 +332,60 @@ class SqliteStorage:
         self._connection.commit()
         return AlertEvent(
             id=cursor.lastrowid,
+            product_id=event.product_id,
+            rule_id=event.rule_id,
+            idempotency_key=event.idempotency_key,
+            reference_price=event.reference_price,
+            current_price=event.current_price,
+            currency=event.currency,
+            created_at=event.created_at,
+        )
+
+    def create_alert_with_outbox(
+        self,
+        event: AlertEvent,
+        *,
+        channel: str,
+        next_attempt_at: datetime,
+        created_at: datetime,
+    ) -> AlertEvent | None:
+        try:
+            self._connection.execute("BEGIN IMMEDIATE")
+            cursor = self._connection.execute(
+                """
+                INSERT INTO alert_events (
+                    product_id, rule_id, idempotency_key, reference_price,
+                    current_price, currency, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    event.product_id,
+                    event.rule_id,
+                    event.idempotency_key,
+                    str(event.reference_price),
+                    str(event.current_price),
+                    event.currency,
+                    _dump_dt(event.created_at),
+                ),
+            )
+            event_id = cursor.lastrowid
+            assert event_id is not None
+            self._connection.execute(
+                """
+                INSERT INTO outbox (
+                    alert_event_id, channel, status, attempts, next_attempt_at,
+                    created_at, sent_at, last_error
+                ) VALUES (?, ?, 'pending', 0, ?, ?, NULL, NULL)
+                """,
+                (event_id, channel, _dump_dt(next_attempt_at), _dump_dt(created_at)),
+            )
+        except sqlite3.IntegrityError:
+            self._connection.rollback()
+            return None
+
+        self._connection.commit()
+        return AlertEvent(
+            id=event_id,
             product_id=event.product_id,
             rule_id=event.rule_id,
             idempotency_key=event.idempotency_key,
