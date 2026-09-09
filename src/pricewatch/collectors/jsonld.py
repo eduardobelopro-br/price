@@ -114,19 +114,93 @@ def _extract_price_and_currency(offer: dict[str, Any]) -> tuple[Decimal, str] | 
     return amount, str(currency)
 
 
-def _select_offer(product: dict[str, Any]) -> dict[str, Any] | CollectError:
-    offer = product.get("offers")
-    if isinstance(offer, list):
-        if len(offer) != 1:
+# Fields that identify a specific variant/listing. Checked on both the
+# Product node and the Offer node, since real-world JSON-LD puts the SKU
+# on either one depending on the site.
+_VARIANT_IDENTIFIER_FIELDS = (
+    "sku",
+    "mpn",
+    "gtin",
+    "gtin8",
+    "gtin12",
+    "gtin13",
+    "gtin14",
+    "model",
+    "color",
+    "size",
+    "name",
+)
+
+
+def _identifier_values(node: dict[str, Any]) -> list[str]:
+    values = []
+    for field in _VARIANT_IDENTIFIER_FIELDS:
+        value = node.get(field)
+        if isinstance(value, str) and value:
+            values.append(value.lower())
+    return values
+
+
+def _matches_variant_key(node: dict[str, Any], variant_key: str) -> bool:
+    needle = variant_key.lower()
+    return any(needle == value or needle in value for value in _identifier_values(node))
+
+
+def _collect_leaf_offers(products: list[dict[str, Any]]) -> list[tuple[dict[str, Any], dict[str, Any]]]:
+    """Flattens every product's offer(s) into (product, offer) pairs — one
+    per entry when `offers` is a list, since that is how most real sites
+    represent per-variant (per-SKU/color/size) pricing under a single
+    Product node.
+    """
+    leaves: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for product in products:
+        offer = product.get("offers")
+        if isinstance(offer, list):
+            leaves.extend((product, entry) for entry in offer if isinstance(entry, dict))
+        elif isinstance(offer, dict):
+            leaves.append((product, offer))
+    return leaves
+
+
+def _select_candidate(
+    leaves: list[tuple[dict[str, Any], dict[str, Any]]], variant_key: str | None
+) -> tuple[dict[str, Any], dict[str, Any]] | CollectError:
+    if not variant_key:
+        if len(leaves) > 1:
             return CollectError(
-                code="ambiguous_offer",
-                message="multiple offers found for product",
+                code="ambiguous_variant",
+                message="multiple offers found; specify variant_key to disambiguate",
                 collector="generic",
             )
-        offer = offer[0]
-    if not isinstance(offer, dict):
-        return CollectError(code="missing_price", message="product has no offer", collector="generic")
-    return offer
+        return leaves[0]
+
+    matches = [
+        (product, offer)
+        for product, offer in leaves
+        if _matches_variant_key(product, variant_key) or _matches_variant_key(offer, variant_key)
+    ]
+
+    if not matches:
+        # With only one possible offer in the page, there is nothing else it
+        # could be, so it is safe to accept it. With more than one, we have
+        # no evidence which one matches — fail rather than guess.
+        if len(leaves) == 1:
+            return leaves[0]
+        return CollectError(
+            code="variant_not_found",
+            message=f"requested variant {variant_key!r} was not found in structured product data",
+            collector="generic",
+            retryable=False,
+        )
+
+    if len(matches) > 1:
+        return CollectError(
+            code="ambiguous_variant",
+            message=f"multiple offers match the requested variant {variant_key!r}",
+            collector="generic",
+        )
+
+    return matches[0]
 
 
 def extract_offer(
@@ -138,27 +212,16 @@ def extract_offer(
             code="unsupported", message="no Product structured data found", collector="generic"
         )
 
-    candidates = products
-    if variant_key:
-        filtered = [
-            product
-            for product in products
-            if variant_key.lower() in json.dumps(product, default=str).lower()
-        ]
-        if filtered:
-            candidates = filtered
-
-    if len(candidates) > 1:
+    leaves = _collect_leaf_offers(products)
+    if not leaves:
         return CollectError(
-            code="ambiguous_variant",
-            message="multiple products found; specify variant_key to disambiguate",
-            collector="generic",
+            code="missing_price", message="no offer found in structured product data", collector="generic"
         )
 
-    product = candidates[0]
-    offer = _select_offer(product)
-    if isinstance(offer, CollectError):
-        return offer
+    candidate = _select_candidate(leaves, variant_key)
+    if isinstance(candidate, CollectError):
+        return candidate
+    product, offer = candidate
 
     result = _extract_price_and_currency(offer)
     if isinstance(result, CollectError):
